@@ -1,0 +1,21 @@
+insert into categories (id, name) values (NEXTVAL('hibernate_sequence'), 'Comida');
+insert into categories (id, name) values (NEXTVAL('hibernate_sequence'), 'Bebida');
+insert into categories (id, name) values (NEXTVAL('hibernate_sequence'), 'Complementos');
+
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Juice - Orange, Concentrate', 91, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Beef - Ground, Extra Lean, Fresh', 87, 1);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Cheese - Parmesan Grated', 39, 1);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Cups 10oz Trans', 67, 1);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Wine - Beringer Founders Estate', 27, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Bread - Wheat Baguette', 82, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Quail - Eggs, Fresh', 3, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Cheese - Mascarpone', 97, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Mace', 25, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Oil - Shortening - All - Purpose', 63, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Marjoram - Fresh', 60, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Turnip - White', 74, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Pork Salted Bellies', 38, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Longos - Greek Salad', 15, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Amaretto', 85, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Godiva White Chocolate', 97, 2);
+insert into products (id, name, price, category_id) values (NEXTVAL('hibernate_sequence'), 'Tomatoes - Roma', 61, 2);
