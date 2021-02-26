@@ -3,7 +3,6 @@ package com.example.multisecurityspring.domain.entity;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Data
 @Builder
@@ -11,15 +10,17 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "users")
-public class Role extends Auditable{
+@Table(name = "user_roles")
+public class UserRole extends Auditable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @OneToMany(mappedBy = "roles")
-    private Set<UserRole> userRoles;
+    @ManyToMany
+    @JoinColumn(name = "role_id")
+    private Role role;
 }
