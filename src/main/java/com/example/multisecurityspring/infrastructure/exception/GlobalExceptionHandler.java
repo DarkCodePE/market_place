@@ -1,8 +1,12 @@
 package com.example.multisecurityspring.infrastructure.exception;
 
+import com.example.multisecurityspring.infrastructure.utils.ErrorTypes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,8 @@ import java.util.Objects;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public static final String TRACE = "trace";
+    @Autowired
+    private MessageSource messageSource;
 
     @Value("${config.trace:false}")
     private boolean printStackTrace;
@@ -34,6 +40,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.unprocessableEntity().body(errorResponse);
     }
 
+    @ExceptionHandler(UserLoginException.class)
+    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
+    public ApiErrorResponse<String> handleUserLoginException(UserLoginException e){
+        log.error("Authentication failed incorrect credentials", e);
+        String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
+        return new ApiErrorResponse<>(ErrorTypes.EXPECTATION_FAILED, message);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrorResponse<String> handleNotFoundException(EntityNotFoundException e){
+        log.error("Failed to find the requested element", e);
+        String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
+        return new ApiErrorResponse<>(ErrorTypes.INVALID_ARGUMENT, message);
+    }
+    //CANDIDATE TO REFACTORING
     @ExceptionHandler(NoSuchElementFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<Object> handleNoSuchElementFoundException(NoSuchElementFoundException itemNotFoundException, WebRequest request) {

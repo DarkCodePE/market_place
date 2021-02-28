@@ -4,7 +4,6 @@ import com.example.multisecurityspring.domain.service.base.BaseService;
 
 import com.example.multisecurityspring.domain.entity.Product;
 import com.example.multisecurityspring.infrastructure.repository.ProductRepository;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

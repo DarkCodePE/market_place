@@ -1,6 +1,8 @@
 package com.example.multisecurityspring.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -9,17 +11,24 @@ import java.util.Set;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "users")
-public class Role extends Auditable{
+@Table(name = "roles")
+public class Role{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @NaturalId
+    @Column(name = "name")
+    private RoleName name;
 
-    @OneToMany(mappedBy = "roles")
+    @EqualsAndHashCode.Exclude
+    @OneToMany(
+            mappedBy = "role",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    /*@JsonIgnoreProperties("role")*/
     private Set<UserRole> userRoles;
 }

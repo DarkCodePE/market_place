@@ -4,13 +4,10 @@ import com.example.multisecurityspring.application.coverter.PackConverter;
 import com.example.multisecurityspring.application.dto.CreatePackDTO;
 import com.example.multisecurityspring.application.dto.PackDTO;
 import com.example.multisecurityspring.application.dto.PagedResponseDTO;
-import com.example.multisecurityspring.application.view.PackView;
-import com.example.multisecurityspring.application.view.ProductView;
 import com.example.multisecurityspring.domain.entity.Pack;
 
 import com.example.multisecurityspring.domain.service.PackService;
 import com.example.multisecurityspring.infrastructure.utils.PaginationLinksUtils;
-import com.fasterxml.jackson.annotation.JsonView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

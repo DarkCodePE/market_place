@@ -29,7 +29,7 @@ public class OrderConverter implements BaseConverter<Order, Object> {
     }
 
     @Override
-    public Object convertToDto(Product entity, Object dto) {
+    public Object convertToDto(Order entity, Object dto) {
         return modelMapper.map(entity, dto.getClass());
     }
 

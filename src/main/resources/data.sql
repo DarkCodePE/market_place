@@ -48,3 +48,6 @@ insert into orders (id, name, date_purchase) values (3, 'Ana Jiménez', CURRENT_
 insert into order_lines (id, product_id, price, quantity, order_id) values (6, 9, 25, 1, 3);
 insert into order_lines (id, product_id, price, quantity, order_id) values (7, 13, 38, 5, 3);
 insert into order_lines (id, product_id, price, quantity, order_id) values (8, 22, 72, 1, 3);;
+
+INSERT INTO roles (name) VALUES ('ROLE_USER');
+INSERT INTO roles (name) VALUES ('ROLE_ADMIN');

@@ -27,8 +27,9 @@ public class PackConverter implements BaseConverter<Pack, Object> {
         return entity.map(element -> modelMapper.map(element, dto.getClass()));
     }
 
+
     @Override
-    public Object convertToDto(Product entity, Object dto) {
+    public Object convertToDto(Pack entity, Object dto) {
         return modelMapper.map(entity, dto.getClass());
     }
 
