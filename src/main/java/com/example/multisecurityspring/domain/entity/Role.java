@@ -7,13 +7,14 @@ import org.hibernate.annotations.NaturalId;
 import javax.persistence.*;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "roles")
-public class Role{
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,6 +30,6 @@ public class Role{
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    /*@JsonIgnoreProperties("role")*/
+    @JsonIgnoreProperties("role")
     private Set<UserRole> userRoles;
 }

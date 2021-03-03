@@ -1,4 +1,4 @@
-package com.example.multisecurityspring.infrastructure.exception;
+package com.example.multisecurityspring.infrastructure.exception.payload;
 
 import com.example.multisecurityspring.infrastructure.utils.ErrorTypes;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-    public class ApiErrorResponse <T>{
+public class ServiceErrorResponse<T>{
     private ErrorTypes errorTypes;
     private T message;
 }

@@ -1,20 +1,47 @@
 package com.example.multisecurityspring.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
+import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 //Heredar propiedades en JPA
 @MappedSuperclass
 //Para no grabar manualmente la fecha de creacion del usuario
 @EntityListeners(AuditingEntityListener.class)
-public abstract class Auditable {
+@JsonIgnoreProperties(
+        value = {"createdAt", "updatedAt"},
+        allowGetters = true
+)
+public abstract class Auditable implements Serializable {
     @CreatedDate
-    private LocalDateTime createdDate;
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
     @LastModifiedDate
-    private LocalDateTime lastModifiedDate;
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

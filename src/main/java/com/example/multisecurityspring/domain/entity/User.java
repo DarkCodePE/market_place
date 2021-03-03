@@ -12,10 +12,10 @@ import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 /*@EqualsAndHashCode(callSuper = false)*/
 @Entity
 @Table(name = "users",
@@ -23,7 +23,7 @@ import java.util.Set;
             @UniqueConstraint(columnNames = { "username" }),
             @UniqueConstraint(columnNames = { "email" })
         })
-public class User{
+public class User extends Auditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,12 +64,21 @@ public class User{
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    /*@JsonIgnoreProperties("user")*/
+    @JsonIgnoreProperties("user")
     private Set<UserRole> userRoles;
 
+    @Column(name = "is_email_verified", nullable = false)
+    private Boolean isEmailVerified;
     /**
      * @Builder el valor predeterminado(inicializarlo)
      */
     @Builder.Default
     private LocalDateTime lastPasswordChangeAt = LocalDateTime.now();
+
+    public User() {
+        super();
+    }
+    public void markVerificationConfirmed() {
+        setIsEmailVerified(true);
+    }
 }

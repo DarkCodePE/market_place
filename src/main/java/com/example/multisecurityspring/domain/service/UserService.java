@@ -38,4 +38,6 @@ public class UserService extends BaseService<User, Long, UserRepository> {
     public Optional<User> findByEmail(String email) {
         return repository.findByEmail(email);
     }
+
+
 }

@@ -2,16 +2,14 @@ package com.example.multisecurityspring.domain.service;
 
 import com.example.multisecurityspring.application.dto.LoginDTO;
 import com.example.multisecurityspring.application.dto.SignUpDTO;
-import com.example.multisecurityspring.domain.entity.Role;
-import com.example.multisecurityspring.domain.entity.RoleName;
-import com.example.multisecurityspring.domain.entity.User;
-import com.example.multisecurityspring.domain.entity.UserRole;
+import com.example.multisecurityspring.domain.entity.*;
 import com.example.multisecurityspring.infrastructure.exception.BadRequestException;
 import com.example.multisecurityspring.infrastructure.exception.EntityNotFoundException;
 import com.example.multisecurityspring.infrastructure.exception.UserLoginException;
 import com.example.multisecurityspring.infrastructure.repository.RoleRepository;
 import com.example.multisecurityspring.infrastructure.repository.UserRepository;
 import com.example.multisecurityspring.infrastructure.security.JwtTokenProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +23,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 @Service
+@Slf4j(topic = "AUTH_SERVICE")
 public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -36,13 +35,15 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private EmailVerificationTokenService emailVerificationTokenService;
 
-    public User registerUser(SignUpDTO signUpRequest){
+    public Optional<User> registerUser(SignUpDTO signUpRequest){
         if (Boolean.TRUE.equals(userRepository.existsByUsername(signUpRequest.getUsername()))){
-            throw new EntityNotFoundException("entity.user.param","USERNAME", signUpRequest.getUsername());
+            throw new EntityNotFoundException("entity.user.already","USERNAME", signUpRequest.getUsername());
         }
-        if (Boolean.TRUE.equals(userRepository.existsByEmail(signUpRequest.getEmail()))){
-            throw new EntityNotFoundException("entity.user.param","EMAIL", signUpRequest.getEmail());
+        if (Boolean.TRUE.equals(userRepository.existsByEmail(signUpRequest.getEmail().toLowerCase()))){
+            throw new EntityNotFoundException("entity.user.already","EMAIL", signUpRequest.getEmail());
         }
 
         User user = User.builder()
@@ -50,6 +51,7 @@ public class AuthService {
                 .lastName(signUpRequest.getLastName().toLowerCase())
                 .username(signUpRequest.getUsername().toLowerCase())
                 .email(signUpRequest.getEmail().toLowerCase())
+                .isEmailVerified(false)
                 .password(passwordEncoder.encode(signUpRequest.getPassword()))
                 .build();
 
@@ -62,7 +64,7 @@ public class AuthService {
 
         user.setUserRoles(Collections.singleton(userRole));
 
-        return userRepository.save(user);
+        return Optional.of(userRepository.save(user));
     }
 
     public String authenticateUser(LoginDTO loginDTO){
@@ -83,4 +85,27 @@ public class AuthService {
                 loginDTO.getPassword()
         )));
     }
+    /**
+     * Confirms the user verification based on the token expiry and mark the user as active.
+     * If user is already verified, save the unnecessary database calls.
+     */
+    public Optional<User> confirmEmailRegistration(String emailToken) {
+        EmailVerificationToken emailVerificationToken = emailVerificationTokenService.findByToken(emailToken)
+                .orElseThrow(() -> new RuntimeException("Token Email verification"));
+
+        User registeredUser = emailVerificationToken.getUser();
+        if (registeredUser.getIsEmailVerified()) {
+            log.info("User [" + emailToken + "] already registered.");
+            return Optional.of(registeredUser);
+        }
+
+        emailVerificationTokenService.verifyExpiration(emailVerificationToken);
+        emailVerificationToken.setConfirmedStatus();
+        emailVerificationTokenService.save(emailVerificationToken);
+
+        registeredUser.markVerificationConfirmed();
+        userRepository.save(registeredUser);
+        return Optional.of(registeredUser);
+    }
+
 }

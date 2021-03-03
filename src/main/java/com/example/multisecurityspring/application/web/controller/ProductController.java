@@ -7,6 +7,7 @@ import com.example.multisecurityspring.domain.entity.Pack;
 import com.fasterxml.jackson.annotation.JsonView;
 import cz.jirutka.rsql.parser.RSQLParser;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.ObjectUtils;
 import com.example.multisecurityspring.infrastructure.commons.I18Constants;
 import com.example.multisecurityspring.application.coverter.ProductConverter;
@@ -98,6 +99,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<ProductCreateDTO> create(@RequestBody @Valid ProductCreateDTO request){
         Product product = productRepository.save(productConverter.convertToEntity(request, new Product()));
         ProductCreateDTO productCreateDto = (ProductCreateDTO) productConverter.convertToDto(product, new ProductCreateDTO());

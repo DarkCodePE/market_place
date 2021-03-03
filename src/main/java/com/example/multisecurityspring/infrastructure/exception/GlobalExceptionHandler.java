@@ -1,6 +1,6 @@
 package com.example.multisecurityspring.infrastructure.exception;
 
-import com.example.multisecurityspring.infrastructure.utils.ErrorTypes;
+import com.example.multisecurityspring.infrastructure.exception.payload.WebErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,58 +34,76 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Validation error. Check 'errors' field for details.");
+        WebErrorResponse webErrorResponse = new WebErrorResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), "Validation error. Check 'errors' field for details.");
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-            errorResponse.addValidationError(fieldError.getField(), fieldError.getDefaultMessage());
+            webErrorResponse.addValidationError(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        return ResponseEntity.unprocessableEntity().body(errorResponse);
+        return ResponseEntity.unprocessableEntity().body(webErrorResponse);
     }
 
     @ExceptionHandler(UserLoginException.class)
     @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
-    public ApiErrorResponse<String> handleUserLoginException(UserLoginException e){
+    public WebErrorResponse handleUserLoginException(UserLoginException e){
         log.error("Authentication failed incorrect credentials", e);
         String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
-        return new ApiErrorResponse<>(ErrorTypes.EXPECTATION_FAILED, message);
+        return new WebErrorResponse(HttpStatus.EXPECTATION_FAILED.value(), message);
+    }
+
+    @ExceptionHandler(UserRegistrationException.class)
+    @ResponseStatus(HttpStatus.EXPECTATION_FAILED)
+    public WebErrorResponse handleUserLoginException(UserRegistrationException e){
+        log.error("Authentication failed incorrect credentials", e);
+        String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
+        return new WebErrorResponse(HttpStatus.EXPECTATION_FAILED.value(), message);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public WebErrorResponse handleAccessDeniedException(
+            Exception e, WebRequest request) {
+        log.error("Access is denied", e);
+        return new WebErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiErrorResponse<String> handleNotFoundException(EntityNotFoundException e){
-        log.error("Failed to find the requested element", e);
+    public WebErrorResponse handleNotFoundException(EntityNotFoundException e){
+        log.error("Bad request wrong items", e);
         String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
-        return new ApiErrorResponse<>(ErrorTypes.INVALID_ARGUMENT, message);
+        return new WebErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
     }
-    //CANDIDATE TO REFACTORING
+
     @ExceptionHandler(NoSuchElementFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleNoSuchElementFoundException(NoSuchElementFoundException itemNotFoundException, WebRequest request) {
+    public WebErrorResponse handleNoSuchElementFoundException(NoSuchElementFoundException itemNotFoundException, WebRequest request) {
         log.error("Failed to find the requested element", itemNotFoundException);
-        return buildErrorResponse(itemNotFoundException, HttpStatus.NOT_FOUND, request);
+        return new WebErrorResponse(HttpStatus.NOT_FOUND.value(), itemNotFoundException.getMessage());
+    }
+    @ExceptionHandler(InvalidTokenRequestException.class)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    public WebErrorResponse handleInvalidTokenRequestException(InvalidTokenRequestException e){
+        log.error("Expired token", e);
+        String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
+        return new WebErrorResponse(HttpStatus.NOT_ACCEPTABLE.value(), message);
+    }
+
+    @ExceptionHandler(value = MailSendException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public WebErrorResponse handleMailSendException(MailSendException e, WebRequest request) {
+        log.error("Error sending mail verification", e);
+        String message = messageSource.getMessage(e.getMessage(), e.getParams(), LocaleContextHolder.getLocale());
+        return new WebErrorResponse(HttpStatus.SERVICE_UNAVAILABLE.value(), message);
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Object> handleAllUncaughtException(Exception exception, WebRequest request) {
+    public WebErrorResponse handleAllUncaughtException(Exception exception, WebRequest request) {
         log.error("Unknown error occurred", exception);
-        return buildErrorResponse(exception, "Unknown error occurred", HttpStatus.INTERNAL_SERVER_ERROR, request);
-    }
-
-    private ResponseEntity<Object> buildErrorResponse(Exception exception,
-                                                      HttpStatus httpStatus,
-                                                      WebRequest request) {
-        return buildErrorResponse(exception, exception.getMessage(), httpStatus, request);
-    }
-
-    private ResponseEntity<Object> buildErrorResponse(Exception exception,
-                                                      String message,
-                                                      HttpStatus httpStatus,
-                                                      WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(httpStatus.value(), message);
+        WebErrorResponse webErrorResponse = new WebErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unknown error occurred");
         if (printStackTrace && isTraceOn(request)) {
-            errorResponse.setStackTrace(ExceptionUtils.getStackTrace(exception));
+            webErrorResponse.setStackTrace(ExceptionUtils.getStackTrace(exception));
         }
-        return ResponseEntity.status(httpStatus).body(errorResponse);
+        return webErrorResponse;
     }
 
     private boolean isTraceOn(WebRequest request) {
@@ -95,11 +114,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex,
+    protected ResponseEntity<Object> handleExceptionInternal(Exception e,
                                                              Object body,
                                                              HttpHeaders headers,
                                                              HttpStatus status,
                                                              WebRequest request) {
-        return buildErrorResponse(ex, status, request);
+        WebErrorResponse webErrorResponse = new WebErrorResponse(status.value(), e.getMessage());
+        if (printStackTrace && isTraceOn(request)) {
+            webErrorResponse.setStackTrace(ExceptionUtils.getStackTrace(e));
+        }
+        return ResponseEntity.status(status).body(webErrorResponse);
     }
 }
